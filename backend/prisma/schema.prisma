@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  RECEPTIONIST
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum VisitStatus {
+  CHECKED_IN
+  CHECKED_OUT
+}
+
+model User {
+  id                 Int         @id @default(autoincrement())
+  name               String
+  email              String      @unique
+  password           String
+  role               Role
+  address            String
+  phone              String
+  isActive           Boolean     @default(true)
+  createdAt          DateTime    @default(now())
+  registeredVisits   Visit[]
+  blacklistedEntries Blacklist[]
+}
+
+model Visitor {
+  id          Int      @id @default(autoincrement())
+  fullName    String
+  phone       String
+  email       String
+  address     String
+  gender      Gender
+  nationalId  String   @unique
+  companyName String
+  createdAt   DateTime @default(now())
+  visits      Visit[]
+}
+
+model Visit {
+  id             Int         @id @default(autoincrement())
+  visitor        Visitor     @relation(fields: [visitorId], references: [id])
+  visitorId      Int
+  purposeOfVisit String
+  department     String
+  personToVisit  String
+  checkInTime    DateTime    @default(now())
+  checkOutTime   DateTime?
+  visitStatus    VisitStatus @default(CHECKED_IN)
+  remarks        String?
+  registeredBy   User        @relation(fields: [registeredById], references: [id])
+  registeredById Int
+  createdAt      DateTime    @default(now())
+}
+
+model Blacklist {
+  id              Int      @id @default(autoincrement())
+  fullName        String
+  nationalId      String
+  phone           String
+  reason          String
+  blacklistedDate DateTime @default(now())
+  isActive        Boolean  @default(true)
+  blacklistedBy   User     @relation(fields: [blacklistedById], references: [id])
+  blacklistedById Int
+  createdAt       DateTime @default(now())
+}
